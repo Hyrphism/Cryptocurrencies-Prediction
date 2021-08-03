@@ -1,0 +1,21 @@
+version: '3.5'
+
+services: 
+  app:
+    build: cassandra-rest-api
+    ports: 
+      - "5555:5555"
+    networks: 
+      - frontend
+    restart: always
+
+  web:
+    image: nginx
+    ports: 
+      - 80:80
+    networks: 
+      - frontend
+    restart: always
+
+networks: 
+  frontend:
