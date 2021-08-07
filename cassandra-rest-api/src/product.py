@@ -1,10 +1,12 @@
+from datetime import datetime
+
 from db import Database
 import yfinance as yf
 
 class Product:
-  def __init__(self, keyspace, table_name) -> None:
+  def __init__(self, keyspace, table_name, ticker) -> None:
     self.table_name = table_name
-    self.data = yf.download(tickers='UBER', period='5d', interval='5m').reset_index()
+    self.data = yf.download(tickers=ticker, period='1d', interval='1m').reset_index()
 
     self.session = Database()
     self.session.create_keyspace(keyspace)
@@ -30,5 +32,17 @@ class Product:
 
     print(f"Save {len(self.data)} rows to table")
 
-  def find_all(self):
-    return self.session.execute("SELECT json * FROM %s" % self.table_name)
+  def find_all(self, json=False):
+    if json:
+      query = "SELECT JSON * FROM %s" % self.table_name
+    else:
+      query = "SELECT * FROM %s" % self.table_name
+    return self.session.execute(query).all()
+
+  def find_now(self, json=False):
+    date = datetime.now().date()
+    if json:
+      query = "SELECT JSON * FROM %s WHERE datetime > '%s' ALLOW FILTERING;" % (self.table_name, date)
+    else:
+      query = "SELECT * FROM %s WHERE datetime > '%s' ALLOW FILTERING;" % (self.table_name, date)
+    return self.session.execute(query).all()

@@ -2,7 +2,7 @@ from cassandra.cluster import Cluster
 
 class Database:
   def __init__(self) -> None:
-    self.session = Cluster(["172.23.17.242"]).connect()
+    self.session = Cluster().connect()
 
   def execute(self, query):
     try:
@@ -35,7 +35,7 @@ class Database:
     self.execute(query)
 
   def insert_table(self, table_name, column_names, values):
-    query = "INSERT INTO %s (%s) VALUES (%s)" % (table_name, column_names, values)
+    query = "INSERT INTO %s (%s) VALUES (%s) IF NOT EXISTS;" % (table_name, column_names, values)
     self.execute(query)
 
   def update_data(self, table_name, column, value, constraint):
