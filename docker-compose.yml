@@ -1,21 +1,49 @@
 version: '3.5'
 
-services: 
-  app:
-    build: cassandra-rest-api
+services:
+  cassandra-seed:
+    container_name: cassandra-seed
+    image: cassandra
     ports: 
-      - "5555:5555"
-    networks: 
-      - frontend
+      - "9042:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra-seed
+      - CASSANDRA_CLUSTER_NAME=Cassandra Cluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_DC=DC1
     restart: always
-
-  web:
-    image: nginx
-    ports: 
-      - 80:80
+    volumes:
+      - ../lambda-architecture/init:/init
+      - ./docker/volumes/cassandra-seed:/var/lib/cassandra
     networks: 
-      - frontend
-    restart: always
+      - cass
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
 
-networks: 
-  frontend:
+  cassandra-node:
+    container_name: cassandra-node
+    image: cassandra
+    environment:
+      - CASSANDRA_SEEDS=cassandra-seed
+      - CASSANDRA_CLUSTER_NAME=Cassandra Cluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_DC=DC1
+    restart: always
+    volumes: 
+      - ../lambda-architecture/init:/init
+      - ./docker/volumes/cassandra-node:/var/lib/cassandra
+    depends_on: 
+      - cassandra-seed
+    networks: 
+      - cass
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+networks:
+  cass:
