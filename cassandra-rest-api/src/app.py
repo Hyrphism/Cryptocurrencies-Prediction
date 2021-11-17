@@ -1,12 +1,10 @@
-from cassandra import query
-from cassandra.cluster import QueryExhausted
 import pandas as pd
 
 from product import Product
 from db import Database
 from graph import *
 
-from flask import Flask, request
+from flask import Flask
 from flask import render_template
 from flask import jsonify
 
